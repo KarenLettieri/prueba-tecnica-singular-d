@@ -1,11 +1,62 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
+// app.module.ts
+import { Module, Logger } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { UserModule } from './user/user.module'; 
+import { TaskModule } from './task/task.module';
+import { User, UserSchema } from './user/models/user.model';
+import { Task, TaskSchema } from './task/models/task.model';
+import { config } from 'dotenv';
+import { Connection } from 'mongoose';
+import { JwtStrategy } from './user/guards/jwt.strategy';
+
+config();
 
 @Module({
-  imports: [UserModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '1h' },
+    }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    UserModule, 
+    TaskModule,
+  ],
+  providers: [Logger, JwtStrategy],
 })
-export class AppModule {}
+export class AppModule {
+  private readonly logger = new Logger(AppModule.name);
+
+  constructor(private readonly mongooseConnection: Connection, private configService: ConfigService) {
+    this.logger.log(`MongoDB URI: ${configService.get<string>('MONGODB_URI')}`);
+    this.handleMongooseErrors();
+  }
+
+  private handleMongooseErrors() {
+    this.mongooseConnection.on('error', (error) => {
+      this.logger.error(`Mongoose connection error: ${error.message}`);
+    });
+    
+    this.mongooseConnection.on('disconnected', () => {
+      this.logger.warn('Mongoose disconnected');
+    });
+    
+    this.mongooseConnection.on('connected', () => {
+      this.logger.log('Mongoose connected');
+    });
+    
+    this.mongooseConnection.on('reconnected', () => {
+      this.logger.log('Mongoose reconnected');
+    });
+  }
+}
