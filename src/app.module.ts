@@ -1,4 +1,4 @@
-// app.module.ts
+
 import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -6,11 +6,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from './user/user.module'; 
 import { TaskModule } from './task/task.module';
-import { User, UserSchema } from './user/models/user.model';
-import { Task, TaskSchema } from './task/models/task.model';
 import { config } from 'dotenv';
 import { Connection } from 'mongoose';
 import { JwtStrategy } from './user/guards/jwt.strategy';
+import { AuthModule } from './auth/auth.module';
 
 config();
 
@@ -30,7 +29,7 @@ config();
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     UserModule, 
-    TaskModule,
+    TaskModule, AuthModule,
   ],
   providers: [Logger, JwtStrategy],
 })
