@@ -1,19 +1,19 @@
-// user/controllers/user.controller.ts
+
 import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
-import { AuthService } from '../auth/services/auth.service';
+import { AuthService } from '../../auth/services/auth.service';
 import { UserAuthGuard } from '../guards/user-auth.guard';
 
 @Controller('auth')
-@UseGuards(UserAuthGuard)  // Utiliza el guard específico de User
+@UseGuards(UserAuthGuard)  
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('registro')
+  @Post('register')
   async registro(@Body() body: any) {
-    return this.authService.registro(body);
+    return this.authService.register(body);
   }
 
-  @Get('perfil')
+  @Get('profile')
   async getProfile(@Request() req) {
     return this.authService.validateUser(req.user.username, ''); 
   }
