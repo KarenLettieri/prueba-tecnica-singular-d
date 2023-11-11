@@ -3,6 +3,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Task } from '../models/task.model'
+import { CreateTaskDto } from '../dto/create-task.dto';
+import { UpdateTaskDto } from '../dto/update-task.dto';
 
 @Injectable()
 export class TaskService {
@@ -20,15 +22,15 @@ export class TaskService {
     return task;
   }
 
-  async create(task: Task): Promise<Task> {
-    const newTask = new this.taskModel(task);
+  async create(createTaskDto: CreateTaskDto): Promise<Task> {
+    const newTask = new this.taskModel(createTaskDto);
     return newTask.save();
   }
+  
 
-  async update(id: string, updatedTask: Task): Promise<Task> {
+  async update(id: string, updatedTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.findById(id);
-    task.title = updatedTask.title;
-    task.description = updatedTask.description;
+    Object.assign(task, updatedTaskDto);
     return task.save();
   }
 
