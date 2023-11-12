@@ -2,21 +2,22 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../models/user.model'; 
+import { Auth } from 'src/auth/models/auth.model';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(Auth.name) private authModel: Model<Auth>) {}
 
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.authModel.find().exec();
   }
   
   async findByUsername(username: string): Promise<User | null> {
-    return this.userModel.findOne({ username }).exec();
+    return this.authModel.findOne({ username }).exec();
   }
 
   async findById(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.authModel.findById(id).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -24,7 +25,7 @@ export class UserService {
   }
 
   async create(user: any): Promise<User> {
-    const newUser = new this.userModel(user);
+    const newUser = new this.authModel(user);
     return newUser.save();
   }
 
@@ -37,7 +38,7 @@ export class UserService {
 
   async remove(id: string): Promise<User> {
     const user = await this.findById(id);
-    return this.userModel.findByIdAndRemove(id).exec();
+    return this.authModel.findByIdAndRemove(id).exec();
   }
 
   async validateUser(username: string, password: string): Promise<User | null> {

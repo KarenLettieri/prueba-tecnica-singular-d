@@ -23,6 +23,16 @@ export class AuthService {
       throw new ConflictException('We had a problem with the register.');
     }
   }
+  async validateUser(username: string, password: string): Promise<any> {
+    const user = await this.userService.findByUsername(username);
+
+    if (user && user.password === password) {
+      const { password, ...result } = user.toObject();
+      return result;
+    }
+
+    return null;
+  }
 
   async login(user: LoginAuthDto): Promise<any> {
     const loggedUser = await this.userService.validateUser(user.username, user.password);
