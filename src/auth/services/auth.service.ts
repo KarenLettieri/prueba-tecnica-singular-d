@@ -1,7 +1,8 @@
-// src/auth/auth.service.ts
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../user/services/user.service';
+import { RegisterAuthDto } from '../dto/register-auth.dto';
+import { LoginAuthDto } from '../dto/login-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,32 +11,27 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async register(user: any): Promise<any> {
+  async register(usuario: RegisterAuthDto): Promise<any> {
     try {
-      const existingUser = await this.userService.findByUsername(user.username);
+      const existingUser = await this.userService.findByUsername(usuario.username);
       if (existingUser) {
-        throw new ConflictException('Username already in use.');
+        throw new ConflictException('The username already exists.');
       }
 
-      return this.userService.create(user);
+      return this.userService.create(usuario);
     } catch (error) {
-      throw new ConflictException('There was a problem registering the user.');
+      throw new ConflictException('We had a problem with the register.');
     }
   }
 
-  async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.userService.findByUsername(username);
+  async login(user: LoginAuthDto): Promise<any> {
+    const loggedUser = await this.userService.validateUser(user.username, user.password);
 
-    if (user && user.password === password) {
-      const { password, ...result } = user;
-      return result;
+    if (!loggedUser) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    return null;
-  }
-
-  async login(user: any): Promise<any> {
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { username: user.username, sub: loggedUser._id }; 
 
     return {
       access_token: this.jwtService.sign(payload),

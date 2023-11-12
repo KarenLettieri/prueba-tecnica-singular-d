@@ -1,4 +1,3 @@
-
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -39,5 +38,16 @@ export class UserService {
   async remove(id: string): Promise<User> {
     const user = await this.findById(id);
     return this.userModel.findByIdAndRemove(id).exec();
+  }
+
+  async validateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.findByUsername(username);
+
+    if (user && user.password === password) {
+      const { password, ...result } = user.toObject(); 
+    return result;
+  }
+
+    return null;
   }
 }
